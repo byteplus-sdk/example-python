@@ -1,4 +1,4 @@
-from byteplus.core.constant import STATUS_CODE_IDEMPOTENT, STATUS_CODE_SUCCESS, STATUS_CODE_TOO_MANY_REQUEST, \
+from byteplus.core import STATUS_CODE_IDEMPOTENT, STATUS_CODE_SUCCESS, STATUS_CODE_TOO_MANY_REQUEST, \
     STATUS_CODE_OPERATION_LOSS
 from byteplus.retail.protocol.byteplus_retail_pb2 import Status
 

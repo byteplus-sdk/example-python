@@ -1,20 +1,20 @@
 # Press the green button in the gutter to run the script.
 import logging
 import os
+import time
 import uuid
 from datetime import datetime, timezone, timedelta
 from signal import SIGKILL
 
-from byteplus.core.exception import BizException, NetException
-from byteplus.core.option import Option
-from byteplus.core.region import Region
-from byteplus.retail.retail_client import RetailClient
-from byteplus.retail.retail_client_builder import RetailClientBuilder
 from google.protobuf.message import Message
 
+from byteplus.core import Region, BizException, Option, NetException
+from byteplus.retail import Client, ClientBuilder
+from byteplus.retail.protocol import *
+
 from example.retail.concurrent_helper import ConcurrentHelper
-from example.retail.constant import *
-from example.retail.mock_helper import *
+from example.retail.constant import TENANT, TENANT_ID, TOKEN
+from example.retail.mock_helper import mock_users, mock_products, mock_user_events, mock_product, mock_device
 from example.retail.request_helper import RequestHelper
 from example.retail.status_helper import is_upload_success, is_success, is_loss_operation
 
@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 # Optional Param:
 #       scheme
 #       headers
-client: RetailClient = RetailClientBuilder() \
+client: Client = ClientBuilder() \
     .tenant(TENANT) \
     .tenant_id(TENANT_ID) \
     .token(TOKEN) \
@@ -418,10 +418,10 @@ def _build_predict_request() -> PredictRequest:
     scene = request.scene
     scene.scene_name = "home"
 
-    context = request.context
-    context.candidate_product_ids[:] = ["pid1", "pid2"]
-    context.root_product.CopyFrom(mock_product())
-    context.device.CopyFrom(mock_device())
+    ctx = request.context
+    ctx.candidate_product_ids[:] = ["pid1", "pid2"]
+    ctx.root_product.CopyFrom(mock_product())
+    ctx.device.CopyFrom(mock_device())
     return request
 
 

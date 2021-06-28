@@ -8,10 +8,9 @@ from typing import Optional
 from google.protobuf.any_pb2 import Any
 from google.protobuf.message import Message
 
-from byteplus.core.exception import BizException, NetException
-from byteplus.core.option import Option
-from byteplus.retail.protocol.byteplus_retail_pb2 import GetOperationRequest, OperationResponse
-from byteplus.retail.retail_client import RetailClient
+from byteplus.core import BizException, NetException, Option
+from byteplus.retail.protocol import GetOperationRequest, OperationResponse
+from byteplus.retail import Client
 from example.retail.status_helper import is_server_overload, is_upload_success, is_loss_operation
 
 log = logging.getLogger(__name__)
@@ -30,8 +29,8 @@ _GET_OPERATION_TIMEOUT = datetime.timedelta(milliseconds=600)
 
 class RequestHelper(object):
 
-    def __init__(self, client: RetailClient):
-        self._client: RetailClient = client
+    def __init__(self, client: Client):
+        self._client: Client = client
 
     def do_import(self, call, request, response, opts, retry_times):
         # To ensure that the request is successfully received by the server,

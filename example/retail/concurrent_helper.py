@@ -3,8 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 from byteplus.core.exception import BizException
 from byteplus.core.option import Option
-from byteplus.retail.protocol.byteplus_retail_pb2 import *
-from byteplus.retail.retail_client import RetailClient
+from byteplus.retail.protocol import *
+from byteplus.retail import Client
 from example.retail.request_helper import RequestHelper
 from example.retail.status_helper import is_success
 
@@ -15,7 +15,7 @@ _RETRY_TIMES = 2
 
 class ConcurrentHelper(object):
 
-    def __init__(self, client: RetailClient):
+    def __init__(self, client: Client):
         self._client = client
         self._request_helper = RequestHelper(client)
         self._executor = ThreadPoolExecutor(max_workers=5)

@@ -1,6 +1,6 @@
 import time
 
-from byteplus.retail.protocol.byteplus_retail_pb2 import *
+from byteplus.retail.protocol import *
 
 
 def mock_users(count: int) -> list:
