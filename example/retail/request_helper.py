@@ -37,7 +37,7 @@ class RequestHelper(object):
         # it should be retried after network or overload exception occurs.
         op_rsp = self.do_with_retry_although_overload(call, request, opts, retry_times)
         if not is_upload_success(op_rsp.status):
-            log.error("[PollingImportResponse] server return error info, rsp:\n{}", op_rsp)
+            log.error("[PollingImportResponse] server return error info, rsp:\n%s", op_rsp)
             raise BizException(op_rsp.status.message)
         self._polling_response(op_rsp, response)
         return response

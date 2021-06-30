@@ -59,7 +59,7 @@ class ConcurrentHelper(object):
                 log.info("[AsyncWrite] success")
                 return
             call_name = call.__name__
-            log.error("[AsyncWrite] fail, call:%s rsp:\n{}", call_name, rsp)
+            log.error("[AsyncWrite] fail, call:%s rsp:\n%s", call_name, rsp)
         except BaseException as e:
             call_name = call.__name__
             log.error("[AsyncWrite] occur error, call:%s msg:%s", call_name, str(e))
