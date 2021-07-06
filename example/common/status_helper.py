@@ -1,6 +1,6 @@
+from byteplus.common.protocol import Status
 from byteplus.core import STATUS_CODE_IDEMPOTENT, STATUS_CODE_SUCCESS, STATUS_CODE_TOO_MANY_REQUEST, \
     STATUS_CODE_OPERATION_LOSS
-from byteplus.retail.protocol.byteplus_retail_pb2 import Status
 
 
 def is_upload_success(status: Status) -> bool:
@@ -10,6 +10,10 @@ def is_upload_success(status: Status) -> bool:
 
 def is_success(status: Status) -> bool:
     code: int = status.code
+    return code == STATUS_CODE_SUCCESS
+
+
+def is_success_code(code: int) -> bool:
     return code == STATUS_CODE_SUCCESS
 
 

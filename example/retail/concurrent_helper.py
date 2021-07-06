@@ -5,8 +5,8 @@ from byteplus.core.exception import BizException
 from byteplus.core.option import Option
 from byteplus.retail.protocol import *
 from byteplus.retail import Client
-from example.retail.request_helper import RequestHelper
-from example.retail.status_helper import is_success
+from example.common.request_helper import RequestHelper
+from example.common.status_helper import is_success
 
 log = logging.getLogger(__name__)
 

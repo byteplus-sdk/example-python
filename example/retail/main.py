@@ -1,4 +1,3 @@
-# Press the green button in the gutter to run the script.
 import logging
 import os
 import time
@@ -9,14 +8,17 @@ from signal import SIGKILL
 from google.protobuf.message import Message
 
 from byteplus.core import Region, BizException, Option, NetException
+from byteplus.core.time_hlper import rfc3339_format
 from byteplus.retail import Client, ClientBuilder
 from byteplus.retail.protocol import *
 
 from example.retail.concurrent_helper import ConcurrentHelper
 from example.retail.constant import TENANT, TENANT_ID, TOKEN
 from example.retail.mock_helper import mock_users, mock_products, mock_user_events, mock_product, mock_device
-from example.retail.request_helper import RequestHelper
-from example.retail.status_helper import is_upload_success, is_success, is_loss_operation
+from example.common.request_helper import RequestHelper
+from example.common.status_helper import is_upload_success, is_success
+from example.common.example import get_operation_example as do_get_operation
+from example.common.example import list_operations_example as do_list_operations
 
 log = logging.getLogger(__name__)
 
@@ -46,16 +48,12 @@ DEFAULT_WRITE_TIMEOUT = timedelta(milliseconds=800)
 
 DEFAULT_IMPORT_TIMEOUT = timedelta(milliseconds=800)
 
-GET_OPERATION_TIMEOUT = timedelta(milliseconds=800)
-
-DEFAULT_LIST_OPERATIONS_TIMEOUT = timedelta(milliseconds=800)
-
 DEFAULT_PREDICT_TIMEOUT = timedelta(milliseconds=800)
 
 DEFAULT_ACK_IMPRESSIONS_TIMEOUT = timedelta(milliseconds=800)
 
 # default logLevel is Warning
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.NOTSET)
 
 
 def main():
@@ -103,6 +101,7 @@ def main():
     recommend_example()
 
     time.sleep(3)
+    client.release()
     os.kill(os.getpid(), SIGKILL)
 
 
@@ -255,7 +254,7 @@ def write_user_events_example():
     if is_upload_success(response.status):
         log.info("write user_event success")
         return
-    log.error("write suer find fail, msg:%s errItems:%s", response.status, response.errors)
+    log.error("write user find failure info, msg:%s errItems:%s", response.status, response.errors)
     return
 
 
@@ -307,57 +306,21 @@ def _build_import_user_events_request(count: int) -> ImportUserEventsRequest:
     inline_source = input_config.user_events_inline_source
     inline_source.user_events.extend(mock_user_events(count))
     date_config = request.date_config
-    # format time by RCF3339
-    date_config.date = datetime.now(timezone.utc).isoformat()
+    # format time by RFC3339
+    date_config.date = rfc3339_format(datetime.now())
     date_config.is_end = False
     return request
 
 
 def get_operation_example():
-    request = GetOperationRequest()
-    request.name = "750eca88-5165-4aae-851f-a93b75a27b03"
-    opts = _default_opts(GET_OPERATION_TIMEOUT)
-    try:
-        response = client.get_operation(request, *opts)
-    except (BizException, NetException,) as e:
-        log.error("get operation occur error, msg:%s", str(e))
-        return
-    if is_success(response.status):
-        log.info("get operation success rsp:\n%s", response)
-        return
-    if is_loss_operation(response.status):
-        log.error("operation loss, name:%s", request.name)
-        return
-    log.error("get operation find failure info, rsp:\n%s", response)
+    name = "750eca88-5165-4aae-851f-a93b75a27b03"
+    do_get_operation(client, name)
 
 
 def list_operations_example():
-    request: ListOperationsRequest = _build_list_operation_request("")
-    opts: tuple = _default_opts(DEFAULT_LIST_OPERATIONS_TIMEOUT)
-    try:
-        response = client.list_operations(request, *opts)
-    except (BizException, NetException) as e:
-        log.error("list operations occur err, msg:%s", e)
-        return
-    if not is_success(response.status):
-        log.error("list operations find failure info, rsp:\n%s", response)
-        return
-    log.info("list operation success")
-    _parse_task_response(response.operations)
-    # When you get the next Page, you need to put the "nextPageToken"
-    # returned by this Page into the request of next Page
-    # nextPageRequest = build_list_operation_request(response.next_page_token)
-    # request next page
-    return
-
-
-def _build_list_operation_request(page_token: str):
-    filter_content: str = "date>=2021-06-15 and worksOn=ImportUsers and done=true"
-    request: ListOperationsRequest = ListOperationsRequest()
-    request.filter = filter_content
-    request.page_size = 3
-    request.page_token = page_token
-    return request
+    filter_query = "date>=2021-06-15 and worksOn=ImportUsers and done=true"
+    operations = do_list_operations(client, filter_query)
+    _parse_task_response(operations)
 
 
 def _parse_task_response(operations: list):

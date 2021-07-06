@@ -8,10 +8,10 @@ from typing import Optional
 from google.protobuf.any_pb2 import Any
 from google.protobuf.message import Message
 
+from byteplus.common.client import CommonClient
 from byteplus.core import BizException, NetException, Option
-from byteplus.retail.protocol import GetOperationRequest, OperationResponse
-from byteplus.retail import Client
-from example.retail.status_helper import is_server_overload, is_upload_success, is_loss_operation
+from byteplus.common.protocol import GetOperationRequest, OperationResponse
+from example.common.status_helper import is_server_overload, is_upload_success, is_loss_operation
 
 log = logging.getLogger(__name__)
 
@@ -29,8 +29,8 @@ _GET_OPERATION_TIMEOUT = datetime.timedelta(milliseconds=600)
 
 class RequestHelper(object):
 
-    def __init__(self, client: Client):
-        self._client: Client = client
+    def __init__(self, common_client: CommonClient):
+        self._common_client: CommonClient = common_client
 
     def do_import(self, call, request, response, opts, retry_times):
         # To ensure that the request is successfully received by the server,
@@ -132,7 +132,7 @@ class RequestHelper(object):
         request.name = name
         timeout_opt = Option.with_timeout(_GET_OPERATION_TIMEOUT)
         try:
-            return self._client.get_operation(request, timeout_opt)
+            return self._common_client.get_operation(request, timeout_opt)
         except NetException:
             # The NetException should not be thrown.
             # Throwing an exception means the request could not continue,
