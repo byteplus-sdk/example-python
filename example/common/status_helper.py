@@ -10,11 +10,11 @@ def is_upload_success(status: Status) -> bool:
 
 def is_success(status: Status) -> bool:
     code: int = status.code
-    return code == STATUS_CODE_SUCCESS
+    return code == STATUS_CODE_SUCCESS or code == 200
 
 
 def is_success_code(code: int) -> bool:
-    return code == STATUS_CODE_SUCCESS
+    return code == STATUS_CODE_SUCCESS or code == 200
 
 
 def is_server_overload(status: Status) -> bool:
