@@ -33,7 +33,7 @@ client: Client = ClientBuilder() \
     .tenant_id(TENANT_ID) \
     .token(TOKEN) \
     .region(Region.AIR) \
-    .hosts(["byteair-api-cn1.snssdk.com为host"]) \
+    .hosts(["byteair-api-cn1.snssdk.com"]) \
     .schema("https") \
     .headers({"Customer-Header": "value"}) \
     .build()
@@ -60,24 +60,24 @@ logging.basicConfig(level=logging.NOTSET)
 
 def main():
     # 实时数据上传
-    # write_data_example()
-    # # 并发实时数据上传
-    # concurrent_write_data_example()
-    # # 天级离线数据上传
+    write_data_example()
+    # 并发实时数据上传
+    concurrent_write_data_example()
+    # 天级离线数据上传
     import_data_example()
-    # # 并发天级离线数据上传
-    # concurrent_import_data_example()
-    #
-    # # 标识天级离线数据上传完成
-    # done_example()
-    # # 并发标识天级离线数据上传完成
-    # concurrent_done_example()
-    #
-    # # 与Import接口一起使用，用于天级数据上传状态（是否处理完成，成功/失败条数）监听
-    # get_operation_example()
-    #
-    # # 请求推荐服务获取推荐结果
-    # recommend_example()
+    # 并发天级离线数据上传
+    concurrent_import_data_example()
+
+    # 标识天级离线数据上传完成
+    done_example()
+    # 并发标识天级离线数据上传完成
+    concurrent_done_example()
+
+    # 与Import接口一起使用，用于天级数据上传状态（是否处理完成，成功/失败条数）监听
+    get_operation_example()
+
+    # 请求推荐服务获取推荐结果
+    recommend_example()
 
     time.sleep(3)
     client.release()
