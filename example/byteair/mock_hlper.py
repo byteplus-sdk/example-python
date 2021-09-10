@@ -8,6 +8,7 @@ def mock_data_list(count: int) -> list:
 def mock_data():
     result = {
         "user_id": "1457789",
+        "goods_id": "123134",
         "event_type": "purchase",
         "event_timestamp": 1623681767,
         "scene_scene_name": "product detail page",
