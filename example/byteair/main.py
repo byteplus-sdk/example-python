@@ -140,7 +140,7 @@ def import_data_example():
     # 一个“Import”请求中包含的数据条数最多为10k，如果数据太多，服务器将拒绝请求。
     data_list: list = mock_data_list(2)
     # topic: str = TOPIC_USER
-    topic: str = TOPIC_ITEM
+    topic: str = TOPIC_USER
     opts: tuple = _import_options()
     response: ImportResponse = ImportResponse()
 
