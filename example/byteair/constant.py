@@ -1,18 +1,14 @@
 """
 租户相关信息
 """
-
 # 字节侧提供，用于签名
-# TOKEN = "xxxxxxxxxxxx"
-TOKEN = "fb541d45237fdd44b00255ba2ea77e48"
+TOKEN = "xxxxxxxxxxxx"
 
 # 火山引擎申请的账号id/租户id(tenant_id)，如"2100021"
-# TENANT_ID = "xxxxxxxxxxxx"
-TENANT_ID = "1"
+TENANT_ID = "xxxxxxxxxxxx"
 
 # 个性化推荐服务新建的项目id(project_id)，如"1231314"
-# PROJECT_ID = "xxxxxxxxxxxx"
-PROJECT_ID = "10001850"
+PROJECT_ID = "xxxxxxxxxxxx"
 
 """
 stage枚举值，与推荐平台四种同步阶段相对应
