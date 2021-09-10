@@ -166,7 +166,7 @@ def import_data_example():
     if is_upload_success(response.status):
         log.info("import success")
         return
-    log.error("import find failure info, msg:%s errSamples:%s", response.status, response.errors)
+    log.error("import find failure info, msg:%s errSamples:%s", response.status, response.error_samples)
     return
 
 
