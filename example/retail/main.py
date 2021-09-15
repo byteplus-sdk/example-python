@@ -33,9 +33,7 @@ client: Client = ClientBuilder() \
     .tenant(TENANT) \
     .tenant_id(TENANT_ID) \
     .token(TOKEN) \
-    .region(Region.OTHER) \
-    .schema("https") \
-    .headers({"Customer-Header": "value"}) \
+    .region(Region.SG) \
     .build()
 
 request_helper: RequestHelper = RequestHelper(client)

@@ -33,8 +33,6 @@ client: Client = ClientBuilder() \
     .tenant_id(TENANT_ID) \
     .token(TOKEN) \
     .region(Region.AIR) \
-    .hosts(["byteair-api-cn1.snssdk.com"]) \
-    .schema("https") \
     .build()
 
 request_helper: RequestHelper = RequestHelper(client)
@@ -320,11 +318,11 @@ def conv_to_callback_items(product_items: list) -> list:
 
 
 def _default_opts(timeout: timedelta) -> tuple:
-    customer_headers = {}
+    # customer_headers = {}
     return (
         Option.with_timeout(timeout),
         Option.with_request_id(str(uuid.uuid1())),
-        Option.with_headers(customer_headers),
+        # Option.with_headers(customer_headers),
     )
 
 

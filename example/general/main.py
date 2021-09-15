@@ -32,9 +32,7 @@ client: Client = ClientBuilder() \
     .tenant(TENANT) \
     .tenant_id(TENANT_ID) \
     .token(TOKEN) \
-    .region(Region.OTHER) \
-    .schema("https") \
-    .headers({"Customer-Header": "value"}) \
+    .region(Region.CN) \
     .build()
 
 request_helper: RequestHelper = RequestHelper(client)
@@ -134,11 +132,11 @@ def concurrent_write_data_example():
 
 def _write_options() -> tuple:
     # All options are optional
-    customer_headers = {}
+    # customer_headers = {}
     return (
         Option.with_timeout(DEFAULT_WRITE_TIMEOUT),
         Option.with_request_id(str(uuid.uuid1())),
-        Option.with_headers(customer_headers),
+        # Option.with_headers(customer_headers),
         # The server is expected to return within a certain period，
         # to prevent can't return before client is timeout
         Option.with_server_timeout(DEFAULT_WRITE_TIMEOUT - timedelta(milliseconds=50))
@@ -184,11 +182,11 @@ def concurrent_import_data_example():
 
 def _import_options() -> tuple:
     # All options are optional
-    customer_headers = {}
+    # customer_headers = {}
     return (
         Option.with_timeout(DEFAULT_IMPORT_TIMEOUT),
         Option.with_request_id(str(uuid.uuid1())),
-        Option.with_headers(customer_headers),
+        # Option.with_headers(customer_headers),
         # Required for import request
         # The date in produced of data in this 'import' request
         Option.with_data_date(datetime.now())
@@ -369,11 +367,11 @@ def build_search_request():
 
 
 def _default_opts(timeout: timedelta) -> tuple:
-    customer_headers = {}
+    # customer_headers = {}
     return (
         Option.with_timeout(timeout),
         Option.with_request_id(str(uuid.uuid1())),
-        Option.with_headers(customer_headers),
+        # Option.with_headers(customer_headers),
     )
 
 
