@@ -65,7 +65,7 @@ def main():
     # Import daily offline data concurrently
     concurrent_import_data_example()
 
-    # Mark some day's data has been entirely imported
+    # Mark data in some days has been entirely imported
     done_example()
     # Do 'done' request concurrently
     concurrent_done_example()
@@ -144,8 +144,7 @@ def _write_options() -> tuple:
 
 
 def import_data_example():
-    # The count of items included in one "Write" request
-    # is better to less than 100 when upload real-time data.
+    # The "ImportXXX" api can transfer max to 10k items at one request
     data_list: list = mock_data_list(2)
     # The `topic` is some enums provided by bytedance,
     # who according to tenant's situation
@@ -175,8 +174,8 @@ def concurrent_import_data_example():
     # The `topic` is some enums provided by bytedance,
     # who according to tenant's situation
     topic: str = "user_event"
-    opts: tuple = _write_options()
-    concurrent_helper.submit_write_request(data_list, topic, *opts)
+    opts: tuple = _import_options()
+    concurrent_helper.submit_import_request(data_list, topic, *opts)
     return
 
 
