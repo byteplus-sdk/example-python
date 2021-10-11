@@ -234,7 +234,7 @@ def _build_import_products_request(count: int) -> ImportProductsRequest:
     inline_source = input_config.products_inline_source
     inline_source.products.extend(mock_products(count))
     date_config = request.date_config
-    # format time by RCF3339
+    # format time by RFC3339
     date_config.date = datetime.now(timezone.utc).isoformat()
     date_config.is_end = False
     return request

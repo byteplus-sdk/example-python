@@ -124,7 +124,7 @@ class RequestHelper(object):
             if op.done:
                 return op.response
             time.sleep(_POLLING_INTERVAL.total_seconds())
-        log.error("[PollingResponse] timeout after %s", _POLLING_INTERVAL)
+        log.error("[PollingResponse] polling(not request) timeout after %s", _POLLING_INTERVAL)
         raise BizException("polling import result timeout")
 
     def _get_polling_operation(self, name: str) -> Optional[OperationResponse]:
