@@ -115,7 +115,7 @@ def write_users_example():
     if is_upload_success(response.status):
         log.info("write user success")
         return
-    log.error("write suer find fail, msg:%s errItems:%s", response.status, response.errors)
+    log.error("write user find fail, msg:%s errItems:%s", response.status, response.errors)
     return
 
 
@@ -130,7 +130,8 @@ def concurrent_write_users_example():
 def _build_write_user_request(count: int) -> WriteUsersRequest:
     request = WriteUsersRequest()
     request.users.extend(mock_users(count))
-    request.extra["extra_info"] = "value"
+    # Optional
+    # request.extra["extra_info"] = "value"
     return request
 
 
@@ -183,7 +184,7 @@ def write_products_example():
     if is_upload_success(response.status):
         log.info("write product success")
         return
-    log.error("write suer find fail, msg:%s errItems:%s", response.status, response.errors)
+    log.error("write product find fail, msg:%s errItems:%s", response.status, response.errors)
     return
 
 
@@ -198,7 +199,8 @@ def concurrent_write_products_example():
 def _build_write_product_request(count: int) -> WriteProductsRequest:
     request = WriteProductsRequest()
     request.products.extend(mock_products(count))
-    request.extra["extra_info"] = "value"
+    # Optional
+    # request.extra["extra_info"] = "value"
     return request
 
 
@@ -252,7 +254,7 @@ def write_user_events_example():
     if is_upload_success(response.status):
         log.info("write user_event success")
         return
-    log.error("write user find failure info, msg:%s errItems:%s", response.status, response.errors)
+    log.error("write user event find failure info, msg:%s errItems:%s", response.status, response.errors)
     return
 
 
@@ -268,7 +270,8 @@ def _build_write_user_event_request(count: int) -> WriteUserEventsRequest:
     user_events = mock_user_events(count)
     request = WriteUserEventsRequest()
     request.user_events.extend(user_events)
-    request.extra["extra_info"] = "value"
+    # Optional
+    # request.extra["extra_info"] = "value"
     return request
 
 
@@ -420,11 +423,11 @@ def _build_ack_impressions_request(predict_request_id: str, predict_request, alt
 
 
 def _default_opts(timeout: timedelta) -> tuple:
-    customer_headers = {}
+    # customer_headers = {}
     return (
         Option.with_timeout(timeout),
         Option.with_request_id(str(uuid.uuid1())),
-        Option.with_headers(customer_headers),
+        # Option.with_headers(customer_headers),
     )
 
 
