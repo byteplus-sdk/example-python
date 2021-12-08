@@ -29,9 +29,10 @@ log = logging.getLogger(__name__)
 #       scheme, 仅支持"https"和"http"
 #       headers, 支持添加自定义header
 client: Client = ClientBuilder() \
-    .tenant(PROJECT_ID) \
     .tenant_id(TENANT_ID) \
-    .token(TOKEN) \
+    .project_id(PROJECT_ID) \
+    .ak(AK) \
+    .sk(SK) \
     .region(Region.AIR) \
     .build()
 
