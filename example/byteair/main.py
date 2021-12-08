@@ -57,22 +57,15 @@ logging.basicConfig(level=logging.NOTSET)
 
 
 def main():
-    # 实时数据上传
+    # 数据上传
     write_data_example()
-    # 并发实时数据上传
+    # 并发数据上传
     concurrent_write_data_example()
-    # 天级离线数据上传
-    import_data_example()
-    # 并发天级离线数据上传
-    concurrent_import_data_example()
 
     # 标识天级离线数据上传完成
     done_example()
     # 并发标识天级离线数据上传完成
     concurrent_done_example()
-
-    # 与Import接口一起使用，用于天级数据上传状态（是否处理完成，成功/失败条数）监听
-    get_operation_example()
 
     # 请求推荐服务获取推荐结果
     recommend_example()
@@ -88,7 +81,11 @@ def write_data_example():
     data_list: list = mock_data_list(2)
     # topic为枚举值，请参考API文档
     topic: str = TOPIC_USER
-    opts: tuple = _write_options()
+
+    # 传输天级数据
+    opts: tuple = _daily_write_options(datetime(year=2021, month=9, day=1))
+    # 传输实时数据
+    # opts: tuple = _streaming_write_options()
 
     def call(call_data_list, *call_opts: Option) -> WriteResponse:
         return client.write_data(call_data_list, topic, *call_opts)
@@ -117,7 +114,7 @@ def concurrent_write_data_example():
 
 
 # Write请求参数说明，请根据说明修改
-def _write_options() -> tuple:
+def _streaming_write_options() -> tuple:
     # customer_headers = {}
     return (
         # 必选.Write接口只能用于实时数据传输，此处只能填"incremental_sync_streaming"
@@ -133,42 +130,25 @@ def _write_options() -> tuple:
         Option.with_server_timeout(DEFAULT_WRITE_TIMEOUT - timedelta(milliseconds=50))
     )
 
+# 实时数据同步请求参数说明，请根据说明修改
+def _streaming_write_options(date: str) -> tuple:
+    # customer_headers = {}
+    return (
+        # 必选.Write接口只能用于实时数据传输，此处只能填"incremental_sync_streaming"
+        Option.with_stage(STAGE_INCREMENTAL_SYNC_STREAMING),
+        # 必传，要求每次请求的Request-Id不重复，若未传，sdk会默认为每个请求添加
+        Option.with_request_id(str(uuid.uuid1())),
+        # 可选，请求超时时间，根据实际情况调整，建议设置大些
+        Option.with_timeout(DEFAULT_WRITE_TIMEOUT),
+        # 可选.添加自定义header.
+        # Option.with_headers(customer_headers),
+        # 可选. 服务端期望在一定时间内返回，避免客户端超时前响应无法返回。
+        # 此服务器超时应小于Write请求设置的总超时。
+        Option.with_server_timeout(DEFAULT_WRITE_TIMEOUT - timedelta(milliseconds=50))
+    )
 
-# 离线天级数据上传example
-def import_data_example():
-    # 一个“Import”请求中包含的数据条数最多为10k，如果数据太多，服务器将拒绝请求。
-    data_list: list = mock_data_list(2)
-    # topic: str = TOPIC_USER
-    topic: str = TOPIC_USER
-    opts: tuple = _import_options()
-    response: ImportResponse = ImportResponse()
-
-    def call(call_data_list, *call_opts: Option) -> ImportResponse:
-        return client.import_data(call_data_list, topic, *call_opts)
-
-    try:
-        request_helper.do_import(call, data_list, response, opts, DEFAULT_RETRY_TIMES)
-    except BizException as e:
-        log.error("import occur err, msg:%s", e)
-        return
-    if is_upload_success(response.status):
-        log.info("import success")
-        return
-    log.error("import find failure info, msg: %s error_samples: %s", response.status, response.error_samples)
-    return
-
-
-# 离线天级数据并发/异步上传example
-def concurrent_import_data_example():
-    data_list: list = mock_data_list(2)
-    topic: str = TOPIC_USER
-    opts: tuple = _write_options()
-    concurrent_helper.submit_write_request(data_list, topic, *opts)
-    return
-
-
-# Import请求参数说明，请根据说明修改
-def _import_options() -> tuple:
+# 天级离线数据同步请求参数说明，请根据说明修改
+def _daily_write_options(date: datetime) -> tuple:
     # customer_headers = {}
     return (
         # 必传， Import接口数据传输阶段，包括：
@@ -177,7 +157,7 @@ def _import_options() -> tuple:
         # 必传，要求每次请求的Request-Id不重复，若未传，sdk会默认为每个请求添加
         Option.with_request_id(str(uuid.uuid1())),
         # 必传，数据产生日期，实际传输时需修改为实际日期
-        Option.with_data_date(datetime(year=2021, month=9, day=1)),
+        Option.with_data_date(date),
         # 可选，请求超时时间，根据实际情况调整，建议设置大些
         Option.with_timeout(DEFAULT_IMPORT_TIMEOUT),
         # 可选.添加自定义header.
