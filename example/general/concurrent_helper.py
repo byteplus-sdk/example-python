@@ -3,7 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 from byteplus.core.option import Option
 from byteplus.general import Client
-from byteplus.general.protocol import CallbackRequest, ImportResponse, DoneResponse, WriteResponse
+from byteplus.common.protocol import DoneResponse
+from byteplus.general.protocol import CallbackRequest, ImportResponse, WriteResponse
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_success, is_success_code
 

@@ -3,7 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 from byteplus.core.exception import BizException
 from byteplus.core.option import Option
-from byteplus.rutenad.protocol import *
+from byteplus.rutenad.protocol import WriteUsersRequest, WriteProductsRequest, WriteAdvertisementsRequest, \
+    WriteUserEventsRequest
 from byteplus.rutenad import Client
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_success

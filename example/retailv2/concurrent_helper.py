@@ -3,10 +3,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 from byteplus.core.exception import BizException
 from byteplus.core.option import Option
-from byteplus.retail.protocol import WriteUsersRequest, WriteProductsRequest, WriteUserEventsRequest, \
-    AckServerImpressionsRequest, ImportUsersRequest, ImportProductsRequest, \
-    ImportUserEventsRequest, ImportUsersResponse, ImportProductsResponse, ImportUserEventsResponse
-from byteplus.retail import Client
+from byteplus.retailv2.protocol import WriteUsersRequest, WriteProductsRequest, WriteUserEventsRequest,\
+    AckServerImpressionsRequest
+from byteplus.retailv2 import Client
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_success
 
@@ -29,12 +28,6 @@ class ConcurrentHelper(object):
             call = self._do_write_products
         elif isinstance(request, WriteUserEventsRequest):
             call = self._do_write_user_events
-        elif isinstance(request, ImportUsersRequest):
-            call = self._do_import_users
-        elif isinstance(request, ImportProductsRequest):
-            call = self._do_import_products
-        elif isinstance(request, ImportUserEventsRequest):
-            call = self._do_import_user_events
         elif isinstance(request, AckServerImpressionsRequest):
             call = self._do_ack
         else:
@@ -66,33 +59,6 @@ class ConcurrentHelper(object):
             call_name = call.__name__
             log.error("[AsyncWrite] occur error, call:%s msg:%s", call_name, str(e))
         return
-
-    def _do_import_users(self, request: ImportUsersRequest, opts: tuple):
-        response: ImportUsersResponse = ImportUsersResponse()
-        self._do_import(self._client.import_users, request, response, opts)
-        return
-
-    def _do_import_products(self, request: ImportProductsRequest, opts: tuple):
-        response: ImportProductsResponse = ImportProductsResponse()
-        self._do_import(self._client.import_products, request, response, opts)
-        return
-
-    def _do_import_user_events(self, request: ImportUserEventsRequest, opts: tuple):
-        response: ImportUserEventsResponse = ImportUserEventsResponse()
-        self._do_import(self._client.import_user_events, request, response, opts)
-        return
-
-    def _do_import(self, call, request, response, opts: tuple) -> None:
-        try:
-            self._request_helper.do_import(call, request, response, opts, _RETRY_TIMES)
-            if is_success(response.status):
-                log.info("[AsyncImport] success")
-                return
-            call_name = call.__name__
-            log.error("[AsyncImport] fail, call:%s rsp:\n%s", call_name, response)
-        except BaseException as e:
-            call_name = call.__name__
-            log.error("[AsyncImport] occur error, call:%s msg:%s", call_name, str(e))
 
     def _do_ack(self, request, opts: tuple):
         try:
