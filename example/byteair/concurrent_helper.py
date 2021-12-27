@@ -36,25 +36,6 @@ class ConcurrentHelper(object):
             log.error("[AsyncWrite] occur error, msg:%s", str(e))
         return
 
-    def submit_import_request(self, data_list: list, topic: str, *opts: Option):
-        self._executor.submit(self._do_import, data_list, topic, *opts)
-
-    def _do_import(self, data_list: list, topic: str, *opts: Option):
-        response: ImportResponse = ImportResponse()
-
-        def call(call_data_list: list, *call_opts: Option) -> ImportResponse:
-            return self._client.import_data(call_data_list, topic, *call_opts)
-
-        try:
-            self._request_helper.do_import(call, data_list, response, opts, _RETRY_TIMES)
-            if is_success(response.status):
-                log.info("[AsyncImport] success")
-                return
-            log.error("[AsyncImport] fail, rsp:\n%s", response)
-        except BaseException as e:
-            log.error("[AsyncImport] occur error, msg:%s", str(e))
-        return
-
     def submit_done_request(self, date_list: list, topic: str, *opts: Option):
         self._executor.submit(self._do_done, date_list, topic, *opts)
 
