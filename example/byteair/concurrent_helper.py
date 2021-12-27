@@ -85,3 +85,6 @@ class ConcurrentHelper(object):
         except BaseException as e:
             log.error("[AsyncCallback] occur error, msg:%s", str(e))
         return
+
+    def wait_and_shutdown(self):
+        self._executor.shutdown(wait=True)
