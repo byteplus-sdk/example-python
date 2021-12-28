@@ -68,7 +68,9 @@ def main():
     concurrent_done_example()
 
     # 请求推荐服务获取推荐结果
-    recommend_example()
+    predict_example()
+    # 将推荐请求结果（实际曝光数据）通过callback接口上报
+    callback_example()
 
     time.sleep(3)
     client.release()
@@ -110,6 +112,7 @@ def concurrent_write_data_example():
     topic: str = TOPIC_USER
     opts: tuple = daily_write_options(datetime(year=2021, month=11, day=1))
     concurrent_helper.submit_write_request(data_list, topic, *opts)
+    concurrent_helper.wait()
     return
 
 
@@ -238,11 +241,9 @@ def build_predict_request() -> PredictRequest:
     return request
 
 
-# 推荐回调example
+# 将推荐请求结果（实际曝光数据）通过callback接口上报
 def callback_example():
     predict_response: PredictResponse = PredictResponse()
-    # The items, which is eventually shown to user,
-    # should send back to Bytedance for deduplication
     callback_items = do_something_with_predict_result(predict_response.value)
     callback_request = CallbackRequest()
     callback_request.predict_request_id = predict_response.request_id
@@ -269,6 +270,7 @@ def do_something_with_predict_result(predict_result) -> list:
     return conv_to_callback_items(predict_result.items)
 
 
+# callback将predict的返回结果进行处理，生成callbackItems
 def conv_to_callback_items(product_items: list) -> list:
     if product_items is None or len(product_items) == 0:
         return []

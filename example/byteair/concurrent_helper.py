@@ -2,8 +2,9 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from byteplus.core.option import Option
-from byteplus.general import Client
-from byteplus.general.protocol import CallbackRequest, ImportResponse, DoneResponse, WriteResponse
+from byteplus.byteair import Client
+from byteplus.byteair.protocol import CallbackRequest, ImportResponse, WriteResponse
+from byteplus.common.protocol import  DoneResponse
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_success, is_success_code
 
@@ -67,5 +68,5 @@ class ConcurrentHelper(object):
             log.error("[AsyncCallback] occur error, msg:%s", str(e))
         return
 
-    def wait_and_shutdown(self):
+    def wait(self):
         self._executor.shutdown(wait=True)
