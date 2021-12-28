@@ -10,16 +10,32 @@ from google.protobuf.message import Message
 
 from byteplus.core import Region, BizException, Option, NetException
 from byteplus.general import Client, ClientBuilder
-from byteplus.general.protocol import *
+from byteplus.common.protocol import DoneResponse
+from byteplus.general.protocol import ImportResponse, WriteResponse, PredictRequest, PredictUser,\
+    CallbackRequest, CallbackItem
 from example.common.example import get_operation_example as do_get_operation
 from example.common.example import list_operations_example as do_list_operations
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_upload_success, is_success, is_success_code
 from example.general.concurrent_helper import ConcurrentHelper
-from example.general.constant import TENANT, TENANT_ID, TOKEN
 from example.general.mock_hlper import mock_data_list
 
 log = logging.getLogger(__name__)
+
+# A unique token assigned by bytedance, which is used to
+# generate an authenticated signature when building a request.
+# It is sometimes called "secret".
+TOKEN = "xxxxxxxxxxxxxxxxxxxxx"
+
+# A unique ID assigned by Bytedance, which is used to
+# generate an authenticated signature when building a request
+# It is sometimes called "appkey".
+TENANT_ID = "xxxxxxxxxxxx"
+
+# A unique identity assigned by Bytedance, which is need to fill in URL.
+# It is sometimes called "company".
+TENANT = "general_demo"
+
 
 # Required Param:
 #       tenant

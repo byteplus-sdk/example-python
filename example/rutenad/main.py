@@ -7,15 +7,29 @@ from signal import SIGKILL
 
 from byteplus.core import Region, BizException, Option
 from byteplus.rutenad import Client, ClientBuilder
-from byteplus.rutenad.protocol import *
+from byteplus.rutenad.protocol import WriteUsersRequest, WriteProductsRequest, WriteAdvertisementsRequest, \
+    WriteUserEventsRequest
 
 from example.rutenad.concurrent_helper import ConcurrentHelper
-from example.rutenad.constant import TENANT, TENANT_ID, TOKEN
 from example.rutenad.mock_helper import mock_users, mock_products, mock_user_events, mock_advertisements
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_upload_success
 
 log = logging.getLogger(__name__)
+
+# A unique token assigned by bytedance, which is used to
+# generate an authenticated signature when building a request.
+# It is sometimes called "secret".
+TOKEN = "xxxxxxxxxxxxxxxxxxxxx"
+
+# A unique ID assigned by Bytedance, which is used to
+# generate an authenticated signature when building a request
+# It is sometimes called "appkey".
+TENANT_ID = "xxxxxxxxxxxx"
+
+# A unique identity assigned by Bytedance, which is need to fill in URL.
+# It is sometimes called "company".
+TENANT = "ruten_demo"
 
 # Required Param:
 #       tenant
