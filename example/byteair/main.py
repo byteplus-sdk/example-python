@@ -10,6 +10,7 @@ from signal import SIGKILL
 from byteplus.core import Region, BizException, Option, NetException
 from byteplus.byteair import Client, ClientBuilder
 from byteplus.byteair.protocol import *
+from byteplus.common.protocol import DoneResponse
 from example.common.example import get_operation_example as do_get_operation
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_upload_success, is_success, is_success_code
