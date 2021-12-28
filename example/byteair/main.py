@@ -184,7 +184,7 @@ def concurrent_done_example():
     opts = done_options()
     concurrent_helper.submit_done_request(date_list, topic, *opts)
     # 等待数据传输完毕
-    concurrent_helper.wait_and_shutdown()
+    concurrent_helper.wait()
     return
 
 
