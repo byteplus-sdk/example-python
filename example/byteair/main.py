@@ -60,14 +60,8 @@ logging.basicConfig(level=logging.NOTSET)
 def main():
     # 数据上传
     write_data_example()
-    # 并发数据上传
-    concurrent_write_data_example()
-
     # 标识天级离线数据上传完成
     done_example()
-    # 并发标识天级离线数据上传完成
-    concurrent_done_example()
-
     # 请求推荐服务获取推荐结果
     predict_example()
     # 将推荐请求结果（实际曝光数据）通过callback接口上报
@@ -104,16 +98,6 @@ def write_data_example():
         return
     # 出现错误、异常时请记录好日志，方便自行排查问题
     log.error("write find failure info, msg:%s errItems:%s", response.status, response.errors)
-    return
-
-
-# 增量实时数据并发/异步上传example
-def concurrent_write_data_example():
-    data_list: list = mock_data_list(2)
-    topic: str = TOPIC_USER
-    opts: tuple = daily_write_options(datetime(year=2021, month=11, day=1))
-    concurrent_helper.submit_write_request(data_list, topic, *opts)
-    concurrent_helper.wait()
     return
 
 
@@ -174,19 +158,6 @@ def done_example():
         return
     log.error("[Done] find failure info, rsp:%s", response)
     return
-
-
-# 离线天级数据上传完成后异步Done接口example，done接口一般无需异步
-def concurrent_done_example():
-    date: datetime = datetime(year=2021, month=9, day=1)
-    date_list: list = [date]
-    topic = TOPIC_USER
-    opts = done_options()
-    concurrent_helper.submit_done_request(date_list, topic, *opts)
-    # 等待数据传输完毕
-    concurrent_helper.wait()
-    return
-
 
 # done请求参数说明，请根据说明修改
 def done_options() -> tuple:
