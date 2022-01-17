@@ -241,3 +241,5 @@ cython_debug/
 .idea
 venv
 *_dev*
+
+/local_test
