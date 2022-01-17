@@ -6,12 +6,10 @@ import uuid
 from datetime import datetime, timedelta
 from signal import SIGKILL
 
-
 from byteplus.core import Region, BizException, Option, NetException
 from byteplus.byteair import Client, ClientBuilder
 from byteplus.byteair.protocol import *
 from byteplus.common.protocol import DoneResponse
-from example.common.example import get_operation_example as do_get_operation
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_upload_success, is_success, is_success_code
 from example.byteair.concurrent_helper import ConcurrentHelper
@@ -52,7 +50,6 @@ TOPIC_ITEM = "item"  # 物品
 TOPIC_USER = "user"  # 用户
 
 TOPIC_BEHAVIOR = "behavior"  # 行为
-
 
 # 必传参数:
 #       tenant 填项目project_id
@@ -115,6 +112,7 @@ def write_data_example():
 
     # 传输天级数据
     opts: tuple = daily_write_options(datetime(year=2021, month=11, day=1))
+
     # 传输实时数据
     # opts: tuple = streaming_write_options()
 
@@ -151,6 +149,7 @@ def streaming_write_options() -> tuple:
         # 此服务器超时应小于Write请求设置的总超时。
         Option.with_server_timeout(DEFAULT_WRITE_TIMEOUT - timedelta(milliseconds=50))
     )
+
 
 # 天级离线数据同步请求参数说明，请根据说明修改
 def daily_write_options(date: datetime) -> tuple:
@@ -192,6 +191,7 @@ def done_example():
         return
     log.error("[Done] find failure info, rsp:%s", response)
     return
+
 
 # done请求参数说明，请根据说明修改
 def done_options() -> tuple:
@@ -248,17 +248,19 @@ def build_predict_request() -> PredictRequest:
 
 
 # 将推荐请求结果（实际曝光数据）通过callback接口上报
-def callback_example():
-    predict_response: PredictResponse = PredictResponse()
+def callback_example(predict_request: PredictRequest, predict_response: PredictResponse):
+    # 需要与predict的scene保持一致
+    scene = "default"
     callback_items = do_something_with_predict_result(predict_response.value)
     callback_request = CallbackRequest()
+    callback_request.scene = scene
     callback_request.predict_request_id = predict_response.request_id
     callback_request.uid = predict_request.user.uid
     callback_request.items.extend(callback_items)
     callback_opts = default_opts(DEFAULT_ACK_IMPRESSIONS_TIMEOUT)
 
     try:
-        rsp = client.callback(callback_request, callback_opts)
+        rsp = client.callback(callback_request, *callback_opts)
         if is_success_code(rsp.code):
             log.info("[Callback] success")
             return
