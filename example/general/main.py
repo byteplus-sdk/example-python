@@ -6,18 +6,13 @@ import uuid
 from datetime import datetime, timedelta
 from signal import SIGKILL
 
-from google.protobuf.message import Message
-
 from byteplus.core import Region, BizException, Option, NetException
 from byteplus.general import Client, ClientBuilder
 from byteplus.common.protocol import DoneResponse
-from byteplus.general.protocol import ImportResponse, WriteResponse, PredictRequest, PredictUser,\
-    CallbackRequest, CallbackItem
-from example.common.example import get_operation_example as do_get_operation
-from example.common.example import list_operations_example as do_list_operations
+from byteplus.general.protocol import ImportResponse, WriteResponse, PredictRequest, PredictUser, \
+    CallbackRequest, CallbackItem, PredictResponse
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_upload_success, is_success, is_success_code
-from example.general.concurrent_helper import ConcurrentHelper
 from example.general.mock_hlper import mock_data_list
 
 log = logging.getLogger(__name__)
@@ -36,7 +31,6 @@ TENANT_ID = "xxxxxxxxxxxx"
 # It is sometimes called "company".
 TENANT = "general_demo"
 
-
 # Required Param:
 #       tenant
 #       tenant_id
@@ -52,8 +46,6 @@ client: Client = ClientBuilder() \
     .build()
 
 request_helper: RequestHelper = RequestHelper(client)
-
-concurrent_helper: ConcurrentHelper = ConcurrentHelper(client)
 
 DEFAULT_RETRY_TIMES = 2
 
@@ -72,32 +64,12 @@ logging.basicConfig(level=logging.NOTSET)
 
 
 def main():
-    # Write real-time data
+    # upload data
     write_data_example()
-    # Write real-time data concurrently
-    concurrent_write_data_example()
-    # Import daily offline data
-    import_data_example()
-    # Import daily offline data concurrently
-    concurrent_import_data_example()
 
-    # Mark data in some days has been entirely imported
+    # Mark some day's data has been entirely imported
+    # Only used when uploading incremental day-level data
     done_example()
-    # Do 'done' request concurrently
-    concurrent_done_example()
-
-    # Obtain Operation information according to operationName,
-    # if the corresponding task is executing, the real-time
-    # result of task execution will be returned
-    get_operation_example()
-
-    # Lists operations that match the specified filter in the request.
-    # It can be used to retrieve the task when losing 'operation.name',
-    # or to statistic the execution of the task within the specified range,
-    # for example, the total count of successfully imported data.
-    # The result of "listOperations" is not real-time.
-    # The real-time info should be obtained through "getOperation"
-    list_operations_example()
 
     # Get recommendation results
     recommend_example()
@@ -112,11 +84,11 @@ def main():
 
 def write_data_example():
     # The count of items included in one "Write" request
-    # is better to less than 100 when upload real-time data.
+    # is better to less than 10000 when upload data.
     data_list: list = mock_data_list(2)
     # The `topic` is some enums provided by bytedance,
     # who according to tenant's situation
-    topic: str = "user_event"
+    topic: str = "user"
     opts: tuple = _write_options()
 
     def call(call_data_list, *call_opts: Option) -> WriteResponse:
@@ -134,80 +106,17 @@ def write_data_example():
     return
 
 
-def concurrent_write_data_example():
-    # The count of items included in one "Write" request
-    # is better to less than 100 when upload real-time data.
-    data_list: list = mock_data_list(2)
-    # The `topic` is some enums provided by bytedance,
-    # who according to tenant's situation
-    topic: str = "user_event"
-    opts: tuple = _write_options()
-    concurrent_helper.submit_write_request(data_list, topic, *opts)
-    return
-
-
 def _write_options() -> tuple:
-    # All options are optional
-    # customer_headers = {}
     return (
-        Option.with_timeout(DEFAULT_WRITE_TIMEOUT),
+        # Required, uniquely identifies a request
         Option.with_request_id(str(uuid.uuid1())),
-        # Option.with_headers(customer_headers),
-        # The server is expected to return within a certain period，
-        # to prevent can't return before client is timeout
-        Option.with_server_timeout(DEFAULT_WRITE_TIMEOUT - timedelta(milliseconds=50))
-    )
-
-
-def import_data_example():
-    # The "ImportXXX" api can transfer max to 10k items at one request
-    data_list: list = mock_data_list(2)
-    # The `topic` is some enums provided by bytedance,
-    # who according to tenant's situation
-    topic: str = "user_event"
-    opts: tuple = _import_options()
-    response: ImportResponse = ImportResponse()
-
-    def call(call_data_list, *call_opts: Option) -> ImportResponse:
-        return client.import_data(call_data_list, topic, *call_opts)
-
-    try:
-        request_helper.do_import(call, data_list, response, opts, DEFAULT_RETRY_TIMES)
-    except BizException as e:
-        log.error("import occur err, msg:%s", e)
-        return
-    if is_upload_success(response.status):
-        log.info("import success")
-        return
-    log.error("import find failure info, msg:%s errSamples:%s", response.status, response.error_samples)
-    return
-
-
-def concurrent_import_data_example():
-    # The count of items included in one "Write" request
-    # is better to less than 100 when upload real-time data.
-    data_list: list = mock_data_list(2)
-    # The `topic` is some enums provided by bytedance,
-    # who according to tenant's situation
-    topic: str = "user_event"
-    opts: tuple = _import_options()
-    concurrent_helper.submit_import_request(data_list, topic, *opts)
-    return
-
-
-def _import_options() -> tuple:
-    # All options are optional
-    # customer_headers = {}
-    return (
+        # The date of uploaded data
+        # Incremental data uploading: required.
+        # Historical data and real-time data uploading: not required.
+        Option.with_data_date(datetime(year=2021, month=11, day=1)),
+        # Optional, the request timeout time, which can be adjusted
+        # according to the actual situation, it is recommended to set a larger one
         Option.with_timeout(DEFAULT_IMPORT_TIMEOUT),
-        Option.with_request_id(str(uuid.uuid1())),
-        # Option.with_headers(customer_headers),
-        # Required for import request
-        # The date in produced of data in this 'import' request
-        Option.with_data_date(datetime.now())
-        # If data in a whole day has been imported completely,
-        # the import request need be with this option
-        # Option.withDataEnd(true)
     )
 
 
@@ -216,7 +125,7 @@ def done_example():
     date_list: list = [date]
     # The `topic` is some enums provided by bytedance,
     # who according to tenant's situation
-    topic = "user_event"
+    topic = "user"
     opts = _default_opts(DEFAULT_DONE_TIMEOUT)
 
     def call(call_date_list: list, *call_opts: Option) -> DoneResponse:
@@ -234,50 +143,6 @@ def done_example():
     return
 
 
-def concurrent_done_example():
-    date: datetime = datetime(year=2021, month=6, day=10)
-    date_list: list = [date]
-    # The `topic` is some enums provided by bytedance,
-    # who according to tenant's situation
-    topic = "user_event"
-    opts = _default_opts(DEFAULT_DONE_TIMEOUT)
-    concurrent_helper.submit_done_request(date_list, topic, *opts)
-    return
-
-
-def get_operation_example():
-    name = "0c5a1145-2c12-4b83-8998-2ae8153ca089"
-    do_get_operation(client, name)
-    return
-
-
-def list_operations_example():
-    filter_query = "date>=2021-06-15 and done=true"
-    operations = do_list_operations(client, filter_query)
-    _parse_task_response(operations)
-    return
-
-
-def _parse_task_response(operations: list):
-    if operations is None or len(operations) == 0:
-        return
-    for operation in operations:
-        if not operation.done:
-            continue
-        response_any = operation.response
-        type_url = response_any.type_url
-        try:
-            if "ImportResponse" in type_url:
-                response: Message = ImportResponse()
-                response.ParseFromString(response_any.value)
-                log.info("[ListOperations] Import rsp:\n%s", response)
-            else:
-                log.error("[ListOperations] unexpected task response type:%s", type_url)
-        except BaseException as e:
-            log.error("[ListOperations] parse task response fail, msg:%s", e)
-    return
-
-
 def recommend_example():
     predict_request: PredictRequest = _build_predict_request()
     # The `scene` is provided by ByteDance, according to tenant's situation
@@ -292,18 +157,10 @@ def recommend_example():
         log.error("predict find failure info, rsp:\n%s", predict_response)
         return
     log.info("predict success")
+
     # The items, which is eventually shown to user,
     # should send back to Bytedance for deduplication
-    callback_items = do_something_with_predict_result(predict_response.value)
-    callback_request = CallbackRequest()
-    callback_request.predict_request_id = predict_response.request_id
-    callback_request.uid = predict_request.user.uid
-    callback_request.scene = scene
-    callback_request.items.extend(callback_items)
-    callback_opts = _default_opts(DEFAULT_ACK_IMPRESSIONS_TIMEOUT)
-
-    concurrent_helper.submit_callback_request(callback_request, *callback_opts)
-    return
+    # callback_example(scene, predict_request, predict_response)
 
 
 def _build_predict_request() -> PredictRequest:
@@ -327,6 +184,29 @@ def _build_predict_request() -> PredictRequest:
     extra.extra["extra_key"] = "value"
 
     return request
+
+
+# Report the recommendation request result (actual exposure data) through the callback interface
+def callback_example(scene: str, predict_request: PredictRequest, predict_response: PredictResponse):
+    callback_items = do_something_with_predict_result(predict_response.value)
+    callback_request = CallbackRequest()
+    # required, should be consistent with the uid passed in the recommendation request
+    callback_request.scene = scene
+    callback_request.predict_request_id = predict_response.request_id
+    # required，should be consistent with `scene` used in the recommendation request
+    callback_request.uid = predict_request.user.uid
+    callback_request.items.extend(callback_items)
+    callback_opts = _default_opts(DEFAULT_ACK_IMPRESSIONS_TIMEOUT)
+
+    try:
+        rsp = client.callback(callback_request, *callback_opts)
+        if is_success_code(rsp.code):
+            log.info("[Callback] success")
+            return
+        log.error("[Callback] fail, rsp:\n%s", rsp)
+    except BaseException as e:
+        log.error("[Callback] occur error, msg:%s", str(e))
+    return
 
 
 def do_something_with_predict_result(predict_result) -> list:
@@ -382,11 +262,9 @@ def build_search_request():
 
 
 def _default_opts(timeout: timedelta) -> tuple:
-    # customer_headers = {}
     return (
         Option.with_timeout(timeout),
         Option.with_request_id(str(uuid.uuid1())),
-        # Option.with_headers(customer_headers),
     )
 
 

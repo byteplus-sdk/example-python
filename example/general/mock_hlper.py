@@ -1,3 +1,6 @@
+import json
+
+
 def mock_data_list(count: int) -> list:
     data_list: list = [None] * count
     for i in range(count):
@@ -6,6 +9,13 @@ def mock_data_list(count: int) -> list:
 
 
 def mock_data():
+    # Fields not included in the standard schema can be transmitted through the 'extra_info' field,
+    # and the extra_info value format should be json string
+    extra_info_map = {
+        "session_id": "sess_89j9ifuqrbplk0rti2va2k1ha0",
+        "store_num": 12,
+        "user_tags": ["1", "2", "3"]
+    }
     result = {
         "user_id": "1457789",
         "event_type": "purchase",
@@ -29,6 +39,6 @@ def mock_data():
         "rec_info": "CiRiMjYyYjM1YS0xOTk1LTQ5YmMtOGNkNS1mZTVmYTczN2FkNDASJAobcmVjZW50X2hvdF9jbGlja3NfcmV0cmlldmVyFQAAAAAYDxoKCgNjdHIdog58PBoKCgNjdnIdANK2OCIHMjcyNTgwMg==",
         "traffic_source": "self",
         "purchase_count": 20,
-        "extra": "{\"session_id\":\"sess_89j9ifuqrbplk0rti2va2k1ha0\",\"request_id\":\"860ae3f6-7e4d-43a9-8699-114cbd72c287\"}",
+        "extra_info": json.dumps(extra_info_map),
     }
     return result
