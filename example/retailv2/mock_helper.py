@@ -98,7 +98,7 @@ def mock_product() -> Product:
 def mock_user_events(count: int) -> list:
     user_events = [None] * count
     for i in range(count):
-        user_event: User = mock_user_event()
+        user_event: UserEvent = mock_user_event()
         user_events[i] = user_event
     return user_events
 
