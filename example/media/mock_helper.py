@@ -20,7 +20,7 @@ def mock_user() -> User:
     user.device_type = "app"
     user.subscriber_type = "free"
     user.language = "English"
-    user.history.extend(["632461", "632462"])
+    user.view_history.extend(["632461", "632462"])
     user.activation_channel = "AppStore"
     user.membership_level = "silver"
     user.registration_timestamp = 1623593487
