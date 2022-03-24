@@ -174,11 +174,11 @@ def _build_predict_request() -> PredictRequest:
     context = request.context
     context.spm = "xx$$xxx$$xx"
 
-    candidate_item = request.candidate_items.add()
+    candidate_item = request.candidateItems.add()
     candidate_item.id = "item_id"
 
-    related_item = request.related_item
-    related_item.id = "item_id"
+    parent_item = request.parentItem
+    parent_item.id = "item_id"
 
     extra = request.extra
     extra.extra["extra_key"] = "value"
@@ -196,6 +196,8 @@ def callback_example(scene: str, predict_request: PredictRequest, predict_respon
     # required，should be consistent with `scene` used in the recommendation request
     callback_request.uid = predict_request.user.uid
     callback_request.items.extend(callback_items)
+    # optional, used to add some extra info for callback request
+    callback_request.extra["extra_key_xxx"] = "xxxx"
     callback_opts = _default_opts(DEFAULT_ACK_IMPRESSIONS_TIMEOUT)
 
     try:
@@ -253,8 +255,8 @@ def search_example():
 def build_search_request():
     request = PredictRequest()
     request.size = 20
-    condition = request.search_condition
-    condition.search_type = 0
+    condition = request.searchInfo
+    condition.searchType = 0
     condition.query = "key_word"
     extra = request.extra
     extra.extra["extra_key"] = "value"

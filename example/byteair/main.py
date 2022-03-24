@@ -95,8 +95,6 @@ def main():
     done_example()
     # 请求推荐服务获取推荐结果
     predict_example()
-    # 将推荐请求结果（实际曝光数据）通过callback接口上报
-    callback_example()
 
     time.sleep(3)
     client.release()
@@ -222,6 +220,8 @@ def predict_example():
         log.error("predict find failure info, rsp:\n%s", predict_response)
         return
     log.info("predict success")
+    # 将推荐请求结果（实际曝光数据）通过callback接口上报
+    # callback_example(predict_request, predict_response)
 
 
 def build_predict_request() -> PredictRequest:
@@ -235,11 +235,11 @@ def build_predict_request() -> PredictRequest:
     context = request.context
     context.spm = "xx$$xxx$$xx"
 
-    candidate_item = request.candidate_items.add()
+    candidate_item = request.candidateItems.add()
     candidate_item.id = "item_id"
 
-    related_item = request.related_item
-    related_item.id = "item_id"
+    parent_item = request.parentItem
+    parent_item.id = "item_id"
 
     extra = request.extra
     extra.extra["extra_key"] = "value"
