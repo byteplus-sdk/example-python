@@ -94,7 +94,7 @@ def main():
 
 
 def write_users_example():
-    # The "WriteXXX" api can transfer max to 100 items at one request
+    # The "WriteXXX" api can transfer max to 2000 items at one request
     request = _build_write_user_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     try:
@@ -110,7 +110,7 @@ def write_users_example():
 
 
 def concurrent_write_users_example():
-    # The "WriteXXX" api can transfer max to 100 items at one request
+    # The "WriteXXX" api can transfer max to 2000 items at one request
     request = _build_write_user_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     concurrent_helper.submit_request(request, *opts)
@@ -126,7 +126,7 @@ def _build_write_user_request(count: int) -> WriteUsersRequest:
 
 
 def write_products_example():
-    # The "WriteXXX" api can transfer max to 100 items at one request
+    # The "WriteXXX" api can transfer max to 2000 items at one request
     request = _build_write_product_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     try:
@@ -142,7 +142,7 @@ def write_products_example():
 
 
 def concurrent_write_products_example():
-    # The "WriteXXX" api can transfer max to 100 items at one request
+    # The "WriteXXX" api can transfer max to 2000 items at one request
     request = _build_write_product_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     concurrent_helper.submit_request(request, *opts)
@@ -158,7 +158,7 @@ def _build_write_product_request(count: int) -> WriteProductsRequest:
 
 
 def write_user_events_example():
-    # The "WriteXXX" api can transfer max to 100 items at one request
+    # The "WriteXXX" api can transfer max to 2000 items at one request
     request = _build_write_user_event_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     try:
@@ -174,7 +174,7 @@ def write_user_events_example():
 
 
 def concurrent_write_user_events_example():
-    # The "WriteXXX" api can transfer max to 100 items at one request
+    # The "WriteXXX" api can transfer max to 2000 items at one request
     request = _build_write_user_event_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     concurrent_helper.submit_request(request, *opts)

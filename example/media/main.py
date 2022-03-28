@@ -2,25 +2,24 @@ import logging
 import os
 import time
 import uuid
-from datetime import timedelta
+from datetime import timedelta, datetime
 from signal import SIGKILL
 
-from byteplus.core import Region, BizException, Option
-from byteplus.rutenad import Client, ClientBuilder
-from byteplus.rutenad.protocol import WriteUsersRequest, WriteProductsRequest, WriteAdvertisementsRequest, \
-    WriteUserEventsRequest
-
-from example.rutenad.concurrent_helper import ConcurrentHelper
-from example.rutenad.mock_helper import mock_users, mock_products, mock_user_events, mock_advertisements
-from example.common.request_helper import RequestHelper
-from example.common.status_helper import is_upload_success
+from byteplus.common.protocol import DoneResponse
+from byteplus.core import Option, Region, BizException
+from byteplus.media import ClientBuilder, Client
+from byteplus.media.protocol import WriteUsersRequest, WriteContentsRequest, WriteUserEventsRequest, \
+    WriteUserEventsResponse, WriteContentsResponse, WriteUsersResponse
+from example.common.status_helper import is_upload_success, is_success
+from example.media.concurrent_helper import ConcurrentHelper
+from example.media.mock_helper import mock_users, mock_contents, mock_user_events
 
 log = logging.getLogger(__name__)
 
 # A unique token assigned by bytedance, which is used to
 # generate an authenticated signature when building a request.
 # It is sometimes called "secret".
-TOKEN = "xxxxxxxxxxxxxxxxxxxxx"
+TOKEN = "xxxxxxxxxxxxxxxxx"
 
 # A unique ID assigned by Bytedance, which is used to
 # generate an authenticated signature when building a request
@@ -29,7 +28,7 @@ TENANT_ID = "xxxxxxxxxxxx"
 
 # A unique identity assigned by Bytedance, which is need to fill in URL.
 # It is sometimes called "company".
-TENANT = "ruten_demo"
+TENANT = "media_demo"
 
 # Required Param:
 #       tenant
@@ -42,22 +41,14 @@ client: Client = ClientBuilder() \
     .tenant(TENANT) \
     .tenant_id(TENANT_ID) \
     .token(TOKEN) \
-    .region(Region.CN) \
+    .region(Region.SG) \
     .build()
-
-request_helper: RequestHelper = RequestHelper(client)
 
 concurrent_helper: ConcurrentHelper = ConcurrentHelper(client)
 
-DEFAULT_RETRY_TIMES = 2
-
 DEFAULT_WRITE_TIMEOUT = timedelta(milliseconds=800)
 
-DEFAULT_IMPORT_TIMEOUT = timedelta(milliseconds=800)
-
-DEFAULT_PREDICT_TIMEOUT = timedelta(milliseconds=800)
-
-DEFAULT_ACK_IMPRESSIONS_TIMEOUT = timedelta(milliseconds=800)
+DEFAULT_DONE_TIMEOUT = timedelta(milliseconds=800)
 
 # default logLevel is Warning
 logging.basicConfig(level=logging.NOTSET)
@@ -69,20 +60,18 @@ def main():
     # Write real-time user data concurrently
     concurrent_write_users_example()
 
-    # Write real-time product data
-    write_products_example()
-    # Write real-time product data concurrently
-    concurrent_write_products_example()
+    # Write real-time content data
+    write_contents_example()
+    # Write real-time content data concurrently
+    concurrent_write_contents_example()
 
     # Write real-time user event data
     write_user_events_example()
     # Write real-time user event data concurrently
     concurrent_write_user_events_example()
 
-    # Write real-time advertisements data
-    write_advertisements_example()
-    # Write real-time advertisements data concurrently
-    concurrent_write_advertisements_example()
+    # Pass a date list to mark the completion of data synchronization for these days.
+    done_example()
 
     time.sleep(3)
     client.release()
@@ -94,7 +83,7 @@ def write_users_example():
     request = _build_write_user_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     try:
-        response = request_helper.do_with_retry(client.write_users, request, opts, DEFAULT_RETRY_TIMES)
+        response: WriteUsersResponse = client.write_users(request, *opts)
     except BizException as e:
         log.error("write user occur err, msg:%s", e)
         return
@@ -121,33 +110,33 @@ def _build_write_user_request(count: int) -> WriteUsersRequest:
     return request
 
 
-def write_products_example():
+def write_contents_example():
     # The "WriteXXX" api can transfer max to 2000 items at one request
-    request = _build_write_product_request(1)
+    request = _build_write_content_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     try:
-        response = request_helper.do_with_retry(client.write_products, request, opts, DEFAULT_RETRY_TIMES)
+        response: WriteContentsResponse = client.write_contents(request, *opts)
     except BizException as e:
-        log.error("write product occur err, msg:%s", e)
+        log.error("write content occur err, msg:%s", e)
         return
     if is_upload_success(response.status):
-        log.info("write product success")
+        log.info("write content success")
         return
-    log.error("write product find fail, msg:%s errItems:%s", response.status, response.errors)
+    log.error("write content find fail, msg:%s errItems:%s", response.status, response.errors)
     return
 
 
-def concurrent_write_products_example():
+def concurrent_write_contents_example():
     # The "WriteXXX" api can transfer max to 2000 items at one request
-    request = _build_write_product_request(1)
+    request = _build_write_content_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     concurrent_helper.submit_request(request, *opts)
     return
 
 
-def _build_write_product_request(count: int) -> WriteProductsRequest:
-    request = WriteProductsRequest()
-    request.products.extend(mock_products(count))
+def _build_write_content_request(count: int) -> WriteContentsRequest:
+    request = WriteContentsRequest()
+    request.contents.extend(mock_contents(count))
     # Optional
     # request.extra["extra_info"] = "value"
     return request
@@ -158,7 +147,7 @@ def write_user_events_example():
     request = _build_write_user_event_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     try:
-        response = request_helper.do_with_retry(client.write_user_events, request, opts, DEFAULT_RETRY_TIMES)
+        response: WriteUserEventsResponse = client.write_user_events(request, *opts)
     except BizException as e:
         log.error("write user_event occur err, msg:%s", e)
         return
@@ -170,7 +159,7 @@ def write_user_events_example():
 
 
 def concurrent_write_user_events_example():
-    # The "WriteXXX" api can transfer max to 2000 items at one request
+    # The "WriteXXX" api can transfer max to 100 items at one request
     request = _build_write_user_event_request(1)
     opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
     concurrent_helper.submit_request(request, *opts)
@@ -186,37 +175,23 @@ def _build_write_user_event_request(count: int) -> WriteUserEventsRequest:
     return request
 
 
-def write_advertisements_example():
-    # The "WriteXXX" api can transfer max to 2000 items at one request
-    request = _build_write_advertisements_request(1)
-    opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
+def done_example():
+    date: datetime = datetime(year=2021, month=12, day=12)
+    date_list: list = [date]
+    # The `topic` is some enums provided by bytedance,
+    # who according to tenant's situation
+    topic = "user"
+    opts = _default_opts(DEFAULT_DONE_TIMEOUT)
     try:
-        response = request_helper.do_with_retry(client.write_advertisements, request, opts, DEFAULT_RETRY_TIMES)
+        response: DoneResponse = client.done(date_list, topic, *opts)
     except BizException as e:
-        log.error("write advertisements occur err, msg:%s", e)
+        log.error("[Done] occur error, msg:%s", str(e))
         return
-    if is_upload_success(response.status):
-        log.info("write advertisements success")
+    if is_success(response.status):
+        log.info("[Done] success")
         return
-    log.error("write advertisements find failure info, msg:%s errItems:%s", response.status, response.errors)
+    log.error("[Done] find failure info, rsp:%s", response)
     return
-
-
-def concurrent_write_advertisements_example():
-    # The "WriteXXX" api can transfer max to 2000 items at one request
-    request = _build_write_advertisements_request(1)
-    opts = _default_opts(DEFAULT_WRITE_TIMEOUT)
-    concurrent_helper.submit_request(request, *opts)
-    return
-
-
-def _build_write_advertisements_request(count: int) -> WriteAdvertisementsRequest:
-    advertisements = mock_advertisements(count)
-    request = WriteAdvertisementsRequest()
-    request.advertisements.extend(advertisements)
-    # Optional
-    # request.extra["extra_info"] = "value"
-    return request
 
 
 def _default_opts(timeout: timedelta) -> tuple:
