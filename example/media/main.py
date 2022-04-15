@@ -5,14 +5,16 @@ import uuid
 from datetime import timedelta, datetime
 from signal import SIGKILL
 
+from google.protobuf.message import Message
+
 from byteplus.common.protocol import DoneResponse
-from byteplus.core import Option, Region, BizException
+from byteplus.core import Option, Region, BizException, NetException
 from byteplus.media import ClientBuilder, Client
 from byteplus.media.protocol import WriteUsersRequest, WriteContentsRequest, WriteUserEventsRequest, \
-    WriteUserEventsResponse, WriteContentsResponse, WriteUsersResponse
+    WriteUserEventsResponse, WriteContentsResponse, WriteUsersResponse, PredictRequest, AckServerImpressionsRequest
 from example.common.status_helper import is_upload_success, is_success
 from example.media.concurrent_helper import ConcurrentHelper
-from example.media.mock_helper import mock_users, mock_contents, mock_user_events
+from example.media.mock_helper import mock_users, mock_contents, mock_user_events, mock_content
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +52,10 @@ DEFAULT_WRITE_TIMEOUT = timedelta(milliseconds=800)
 
 DEFAULT_DONE_TIMEOUT = timedelta(milliseconds=800)
 
+DEFAULT_PREDICT_TIMEOUT = timedelta(milliseconds=8000)
+
+DEFAULT_ACK_IMPRESSIONS_TIMEOUT = timedelta(milliseconds=8000)
+
 # default logLevel is Warning
 logging.basicConfig(level=logging.NOTSET)
 
@@ -72,6 +78,9 @@ def main():
 
     # Pass a date list to mark the completion of data synchronization for these days.
     done_example()
+
+    # Get recommendation results
+    recommend_example()
 
     time.sleep(3)
     client.release()
@@ -192,6 +201,86 @@ def done_example():
         return
     log.error("[Done] find failure info, rsp:%s", response)
     return
+
+
+def recommend_example():
+    predict_request = _build_predict_request()
+    predict_opts = _default_opts(DEFAULT_PREDICT_TIMEOUT)
+    try:
+        # The "home" is scene name, which provided by ByteDance, usually is "home"
+        predict_response = client.predict(predict_request, "home", *predict_opts)
+    except (NetException, BizException) as e:
+        log.error("predict occur error, msg:%s", e)
+        return
+    if not is_success(predict_response.status):
+        log.error("predict find failure info, rsp:\n%s", predict_response)
+        return
+    log.info("predict success")
+    # The items, which is eventually shown to user,
+    # should send back to Bytedance for deduplication
+    altered_contents = do_something_with_predict_result(predict_response.value)
+    ack_request = _build_ack_impressions_request(predict_response.request_id, predict_request, altered_contents)
+    ack_opts = _default_opts(DEFAULT_ACK_IMPRESSIONS_TIMEOUT)
+    concurrent_helper.submit_request(ack_request, *ack_opts)
+
+
+def _build_predict_request() -> PredictRequest:
+    request = PredictRequest()
+    request.user_id = "user_id"
+    request.size = 20
+
+    scene = request.scene
+    scene.scene_name = "home"
+
+    ctx = request.context
+    ctx.candidate_content_ids[:] = ["cid1", "cid2"]
+    ctx.root_content.CopyFrom(mock_content())
+    ctx.device = "android"
+    ctx.os_type = "phone"
+    ctx.app_version = "app_version"
+    ctx.device_model = "device_model"
+    ctx.device_brand = "device_brand"
+    ctx.os_version = "os_version"
+    ctx.browser_type = "firefox"
+    ctx.user_agent = "user_agent"
+    ctx.network = "3g"
+
+    # Optional.
+    request.extra["page_num"] = "1"
+    return request
+
+
+def do_something_with_predict_result(predict_result):
+    # You can handle recommend results here,
+    # such as filter, insert other items, sort again, etc.
+    # The list of goods finally displayed to user and the filtered goods
+    # should be sent back to bytedance for deduplication
+    return conv_to_altered_contents(predict_result.response_contents)
+
+
+def conv_to_altered_contents(content_results):
+    if content_results is None or len(content_results) == 0:
+        return
+    size = len(content_results)
+    altered_contents = [None] * size
+    for i in range(size):
+        content_result = content_results[i]
+        altered_content = AckServerImpressionsRequest.AlteredContent()
+        altered_content.altered_reason = "kept"
+        altered_content.content_id = content_result.content_id
+        altered_content.rank = content_result.rank
+        altered_contents[i] = altered_content
+    return altered_contents
+
+
+def _build_ack_impressions_request(predict_request_id: str, predict_request, altered_contents: list):
+    request = AckServerImpressionsRequest()
+    request.predict_request_id = predict_request_id
+    request.user_id = predict_request.user_id
+    scene: Message = request.scene
+    scene.CopyFrom(predict_request.scene)
+    request.altered_contents.extend(altered_contents)
+    return request
 
 
 def _default_opts(timeout: timedelta) -> tuple:

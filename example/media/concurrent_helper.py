@@ -3,7 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 from byteplus.core import Option, BizException
 from byteplus.media import Client
-from byteplus.media.protocol import WriteUsersRequest, WriteContentsRequest, WriteUserEventsRequest
+from byteplus.media.protocol import WriteUsersRequest, WriteContentsRequest, WriteUserEventsRequest, \
+    AckServerImpressionsRequest
 from example.common.request_helper import RequestHelper
 from example.common.status_helper import is_success
 
@@ -26,6 +27,8 @@ class ConcurrentHelper(object):
             call = self._do_write_contents
         elif isinstance(request, WriteUserEventsRequest):
             call = self._do_write_user_events
+        elif isinstance(request, AckServerImpressionsRequest):
+            call = self._do_ack
         else:
             raise BizException("can't support this request type:" + str(type(request)))
         self._executor.submit(call, request, opts)
@@ -55,3 +58,15 @@ class ConcurrentHelper(object):
             call_name = call.__name__
             log.error("[AsyncWrite] occur error, call:%s msg:%s", call_name, str(e))
         return
+
+    def _do_ack(self, request, opts: tuple):
+        try:
+            call = self._client.ack_server_impressions
+            response = self._request_helper.do_with_retry(call, request, opts, _RETRY_TIMES)
+            if is_success(response.status):
+                log.info("[AsyncAckImpression] success")
+                return
+            log.error("[AsyncAckImpression] fail, rsp:\n%s", response)
+
+        except BaseException as e:
+            log.error("[AsyncAckImpression] occur error, msg:%s", e)
