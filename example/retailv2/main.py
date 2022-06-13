@@ -279,7 +279,12 @@ def _build_ack_impressions_request(predict_request_id: str, predict_request, alt
     request.user_id = predict_request.user_id
     scene: Message = request.scene
     scene.CopyFrom(predict_request.scene)
+    # If it is the recommendation result from byteplus, traffic_source is byteplus,
+    # if it is the customer's own recommendation result, traffic_source is self.
+    request.traffic_source = "byteplus"
     request.altered_products.extend(altered_products)
+
+    # request.extra["ip"] = "127.0.0.1"
     return request
 
 
