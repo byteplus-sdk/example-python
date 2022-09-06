@@ -7,6 +7,8 @@ from signal import SIGKILL
 
 from google.protobuf.message import Message
 
+from byteplus.core.host_availabler_config import Config
+from byteplus.core.metrics.metrics_option import MetricsCfg
 from byteplus.common.protocol import DoneResponse
 from byteplus.core import Option, Region, BizException, NetException
 from byteplus.media import ClientBuilder, Client
@@ -32,13 +34,40 @@ TENANT_ID = "xxxxxxxxxxxx"
 # It is sometimes called "company".
 TENANT = "media_demo"
 
-# Required Param:
-#       tenant
-#       tenant_id
-#       region
-# Optional Param:
-#       scheme
-#       headers
+# # Full Param Client
+# # Required Param:
+# #       tenant
+# #       tenant_id
+# #       region
+# # Optional Param:
+# #       scheme
+# #       headers
+# #       host_availabler_config
+# #       metrics_config
+#
+# # ping_timeout_seconds: The timeout for sending ping requests when hostAvailabler sorts the host, default is 300ms.
+# # ping_interval_seconds: The interval for sending ping requests when hostAvailabler sorts the host, default is 1s.
+# host_availabler_config = Config(ping_timeout_seconds=0.3, ping_interval_seconds=1)
+#
+# # Metrics configuration, when Metrics and Metrics Log are turned on,
+# # the metrics and logs at runtime will be collected and sent to the byteplus server.
+# # During debugging, byteplus can help customers troubleshoot problems.
+# # enable_metrics: enable metrics, default is false.
+# # enable_metrics_log: enable metrics log, default is false.
+# # report_interval_seconds: The time interval for reporting metrics to the byteplus server, the default is 15s.
+# #   When the QPS is high, the value of the reporting interval can be reduced to prevent loss of metrics.
+# #   The longest should not exceed 30s, otherwise it will cause the loss of metrics accuracy.
+# metrics_config = MetricsCfg(enable_metrics=True, enable_metrics_log=True, report_interval_seconds=15)
+#
+# client: Client = ClientBuilder() \
+#     .tenant(TENANT) \
+#     .tenant_id(TENANT_ID) \
+#     .token(TOKEN) \
+#     .region(Region.SG) \
+#     .host_availabler_config(host_availabler_config) \
+#     .metrics_config(metrics_config) \
+#     .build()
+
 client: Client = ClientBuilder() \
     .tenant(TENANT) \
     .tenant_id(TENANT_ID) \
